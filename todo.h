@@ -1,3 +1,10 @@
+/* Main header file for the todoApp
+ * A very basic terminal calendar/todo program
+ * License: GPLv2
+ *
+ * Initial version by Wesley Van Pelt in May 2017
+ */
+
 #include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>

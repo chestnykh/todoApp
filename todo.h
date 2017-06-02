@@ -1,3 +1,7 @@
+#ifndef TODO_H
+#define TODO_H
+
+
 /* Main header file for the todoApp
  * A very basic terminal calendar/todo program
  * License: GPLv2
@@ -25,6 +29,7 @@
                                         (*daysData)[temp].ecn++
 
 #define ncPrint_centered(w, ww, l, s) mvwprintw(w, l, (ww-strlen(s))/2, s)
+#define ncPrint_centered_with_color(w, ww, l, s) mvwprintw(w, l, (ww-strlen(s))/2, s, COLOR_PAIR(1))
 
 typedef struct {
   time_t day;
@@ -37,3 +42,5 @@ typedef struct {
 int  readData(WINDOW*** days, Day** dayData, int* dayCount);
 void drawDays(WINDOW** days, Day* dayData, int dayCount, int displayStart, int* dayDisplayCount);
 void printEvent(WINDOW* day, char* eventData, int* currentLine);
+
+#endif /*TODO_H*/

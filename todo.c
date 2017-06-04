@@ -7,34 +7,26 @@
 
 #include "./todo.h"
 #include "color.h"
+//#include "resize_term.h"
 #include <getopt.h>
+
 
 
 //for getopt_long()
 #define REQUIRED_ARG 1
 
+
 int main(int argc, char** argv) {
-	int i, j, in, dayDisplayCount, dayCount = 0, currentFirstDay = 0, ret = 0;
-	Day *daysData;
-	WINDOW **days;
+	int i, j, in, ret = 0;
 	
 	int result, optIndex;	
-	char *bkgdColor = NULL;
-	char *txtColor = NULL;
-
-
-	/*default text color is white, default background color is blue
-	 i have some troubles with a number of compinations if color pairs
-	 e.g. text_color=yellow, background_color=red
-	 */
-	int textColorNumber = COLOR_WHITE;
-	int bkgdColorNumber = COLOR_BLUE;
 
 	const struct option longOpts [] = {
 		{"background_color", REQUIRED_ARG, NULL, 'b'},
-		{"text_color", REQUIRED_ARG, NULL, 't'}
+		{"text_color", REQUIRED_ARG, NULL, 't'},
+		{"data_file",  REQUIRED_ARG, NULL, 'd'}
 	};
-	while((result = getopt_long(argc, argv, "b:t:", longOpts, &optIndex)) != -1){
+	while((result = getopt_long(argc, argv, "b:t:d:", longOpts, &optIndex)) != -1){
 		switch(result){
 			case 'b':{
 				if(optarg){
@@ -62,16 +54,36 @@ int main(int argc, char** argv) {
 				}
 				break;
 			}
+			case 'd':{
+				if(optarg){
+					size_t len = strlen(optarg);
+					dataFile = malloc(len);
+					if(!dataFile){
+						perror("malloc");
+						return -1;
+					}
+					memcpy(dataFile, optarg, len);
+				}	 
+				break; 
+			}
 			default:
 				 return -1;
 		}
 	}
 
-	if (ret = readData(&days, &daysData, &dayCount)) {
-	printf("Error reading file data: %d\n", ret);
-	return ret;
+	//set the SIGWINCH signal handler
+	if(setSigwinchHandler() == -1)
+		fprintf(stderr, "WARNING: Failed to set SIGEINCH handler!\n");
+
+
+
+	if ((ret = readData(&days, &daysData, &dayCount, dataFile)) != 0) {
+		printf("Error reading file data: %d\n", ret);
+		return ret;
 	}
 	
+
+
 	// Start all the ncurses stuff
 	initscr();
 	raw();
@@ -81,14 +93,7 @@ int main(int argc, char** argv) {
 
 
 	//ncurses color init routines
-	start_color();
-	assume_default_colors(textColorNumber, bkgdColorNumber);
-
-	/*use number one for pair of colors set by default or by user as cmd option*/
-	init_pair(1, textColorNumber, bkgdColorNumber);
-	attron(COLOR_PAIR(1));
-	bkgd(COLOR_PAIR(1));
-	refresh();
+	ncursesColorInit();
 
 	// Generate windows for all of the rendered days
 	drawDays(days, daysData, dayCount, 0, &dayDisplayCount);
@@ -99,58 +104,67 @@ int main(int argc, char** argv) {
 	mvchgat(LINES-1, 54, 2, A_STANDOUT, 0, NULL);
 	mvprintw(LINES-1, COLS-1, "", COLOR_PAIR(1));  // Just here to put the cursor in the lower right
 
-	getInputLoop:
-	in = getch();
-	if (keyname(in)[0] == '^') {
-	switch (keyname(in)[1]) {
-		case 'Q':
-		case 'C':
-		case 'X':
-			goto quit;
-		case 'R':
-			if (ret = readData(&days, &daysData, &dayCount)) {
-				ret = -1;
-				printf("Error reading file data\n");
-				goto quit;
-		}
-			break;
-		case 'S':
-			if (currentFirstDay > 0)
-			currentFirstDay--;
-			break;
-		case 'D':
-			if (currentFirstDay+dayDisplayCount < dayCount)
-				currentFirstDay++;
-			break;
-	}
-	drawDays(days, daysData, dayCount, currentFirstDay, &dayDisplayCount);
-	mvprintw(LINES-1, COLS-1, "", COLOR_PAIR(1));  // Just here to put the cursor in the lower right
-	}
-	goto getInputLoop;
+	int toExit;
+	while(1){
+		toExit = 0;
+		in = getch();
+		if (keyname(in)[0] == '^') {
+			switch (keyname(in)[1]) {
+				case 'Q':
+				case 'C':
+				case 'X':
+					toExit = 1;
+					break;
+				case 'R':
+					if ((ret = readData(&days, &daysData, &dayCount, dataFile)) != 0) {
+						toExit = 1;
+						ret = -1;
+						printf("Error reading file data\n");
+						break;
+				}
+					break;
+				case 'S':
+					if (currentFirstDay > 0)
+						currentFirstDay--;
+					break;
+				case 'D':
+					if (currentFirstDay+dayDisplayCount < dayCount)
+						currentFirstDay++;
+					break;
 
-	quit:
-	for (i = 0; i < dayCount; i++) {
-		for (j = 0; j < daysData[i].eventCount; j++)
-			free(daysData[i].events[j]);
-				for (j = 0; j < daysData[i].dueCount; j++)
-					free(daysData[i].dues[j]);
+			}
+			drawDays(days, daysData, dayCount, currentFirstDay, &dayDisplayCount);
+			mvprintw(LINES-1, COLS-1, "", COLOR_PAIR(1));  // Just here to put the cursor in the lower right
+		}
+		if(toExit == 1)
+			break;
 	}
-	free(days);
-	free(daysData);
+	releaseMemory();
+
 	endwin();
 	return ret;
 }
 
-int readData(WINDOW*** days, Day** daysData, int* dayCount) {
+int readData(WINDOW*** days, Day** daysData, int* dayCount, const char *dataFile) {
 	char type, line[MAX_LINE_LEN];
 	int i, j, k, temp;
 	time_t maxDay, minDay, tempTime;
 	FILE* data;
 	struct tm timeStruct;
 
-	data = fopen("data.txt", "r");
-	if (data == NULL)
-		return 1;
+
+	//default data file
+	if(!dataFile){
+		data = fopen("data.txt", "r");
+		if(!data)
+			return -1;
+	}
+	else{
+		data = fopen(dataFile, "r");
+		if(!data)
+			return -1;
+	}
+	
 
 	minDay = 31536000000;  // 1000 years after 01-01-1970
 	maxDay = 0;
@@ -270,3 +284,5 @@ void printEvent(WINDOW* day, char* eventData, int* currentLine) {
 	for (i = 0; temp[i][0] != '\0'; i++)
 		mvwprintw(day, (*currentLine)++, 1, temp[i], COLOR_PAIR(1));
 }
+
+

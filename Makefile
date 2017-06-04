@@ -6,7 +6,7 @@ LDFLAGS = $(shell pkg-config --libs ncurses)
 APP = todoApp
 
 
-OBJECTS = todo.o color.o
+OBJECTS = todo.o color.o resize_term.o
 .PHONY: clean run app
 
 run: $(APP)
@@ -22,6 +22,7 @@ $(APP): $(OBJECTS)
 #dependencies
 todo.o: todo.c todo.h color.h
 color.o: color.c
+resize_term.o: resize_term.c
 
 
 clean:

@@ -1,6 +1,8 @@
 #include <string.h>
 #include <ncurses.h>
 #include <stdlib.h>
+#include "todo.h"
+
 
 int doCompare(const char *colorName){
 	if(!strncmp(colorName, "black", 5))
@@ -30,4 +32,16 @@ int getTextColorNum(const char *txtColor){
 
 int getBkgdColorNum(const char *bkgdColor){
 	return doCompare(bkgdColor);
+}
+
+
+void ncursesColorInit(){
+	start_color();
+	assume_default_colors(textColorNumber, bkgdColorNumber);
+
+	/*use number one for pair of colors set by default or by user as cmd option*/
+	init_pair(1, textColorNumber, bkgdColorNumber);
+	attron(COLOR_PAIR(1));
+	bkgd(COLOR_PAIR(1));
+	refresh();
 }

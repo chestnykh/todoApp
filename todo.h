@@ -39,8 +39,35 @@ typedef struct {
   char*  dues[MAX_EVENTS];
 } Day;
 
-int  readData(WINDOW*** days, Day** dayData, int* dayCount);
+
+static WINDOW** days;
+static Day* daysData;
+static int dayDisplayCount;
+static int dayCount = 0;
+static int currentFirstDay = 0;
+static char *dataFile = NULL;
+static char *bkgdColor = NULL;
+static char *txtColor = NULL;
+static int textColorNumber = COLOR_WHITE;
+static int bkgdColorNumber = COLOR_BLUE;
+
+
+int  readData(WINDOW*** days, Day** dayData, int* dayCount, const char *dataFile);
 void drawDays(WINDOW** days, Day* dayData, int dayCount, int displayStart, int* dayDisplayCount);
 void printEvent(WINDOW* day, char* eventData, int* currentLine);
+
+
+
+static inline void releaseMemory(){
+	int i, j;
+	for (i = 0; i < dayCount; i++) {
+		for (j = 0; j < daysData[i].eventCount; j++)
+			free(daysData[i].events[j]);
+				for (j = 0; j < daysData[i].dueCount; j++)
+					free(daysData[i].dues[j]);
+	}
+	free(days);
+	free(daysData);
+}
 
 #endif /*TODO_H*/

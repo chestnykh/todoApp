@@ -7,7 +7,7 @@
 
 #include "./todo.h"
 #include "color.h"
-//#include "resize_term.h"
+#include "resize_term.h"
 #include <getopt.h>
 
 

@@ -6,25 +6,27 @@ BIN = ../bin/
 TMP = $(BIN)build/
 SRC = 
 
+
+OBJECTS = $(TMP)graphics.o \
+	  $(TMP)globals.o \
+	  $(TMP)todo.o
+
 APP        = $(BIN)todoApp
-TODO_O     = $(TMP)todo.o
-GRAPHICS_O = $(TMP)graphics.o
-GLOBALS_O = $(TMP)globals.o
 .PHONY:      clean run app
 
 
-app: $(TODO_O) $(GRAPHICS_O) $(GLOBALS_O)
-	$(CC) $(TODO_O) $(GRAPHICS_O) $(GLOBALS_O) $(LDFLAGS) -o $(APP)
+app: $(OBJECTS)
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $(APP)
 
 run: $(APP)
 	./$(APP) -d $(BIN)data.txt
 
-$(TODO_O): $(SRC)todo.c $(SRC)todo.h
-	$(CC) $(CCFLAGS) $(SRC)todo.c -o $(TODO_O)
-$(GRAPHICS_O): $(SRC)graphics.c
-	$(CC) $(CCFLAGS) $(SRC)graphics.c -o $(GRAPHICS_O)
-$(GLOBALS_O): $(SRC)globals.c
-	$(CC) $(CCFLAGS) $(SRC)globals.c -o $(GLOBALS_O)
+$(TMP)todo.o: $(SRC)todo.c $(SRC)todo.h
+	$(CC) $(CCFLAGS) $(SRC)todo.c -o $@
+$(TMP)graphics.o: $(SRC)graphics.c
+	$(CC) $(CCFLAGS) $(SRC)graphics.c -o $@
+$(TMP)globals.o: $(SRC)globals.c
+	$(CC) $(CCFLAGS) $(SRC)globals.c -o $@
 	
 
 clean:

@@ -8,7 +8,7 @@ void sigwinch_handler(int signum) {
 	release_memory();
 	endwin();
 
-	if (read_data(&days, &daysData, &dayCount, dataFile) != 0)
+	if (read_data(&days, &days_data, &day_count, data_file) != 0)
 		fprintf(stderr, "Error reading file data!\n");
 
 	initscr();
@@ -19,13 +19,13 @@ void sigwinch_handler(int signum) {
 
 	// ncurses color init routines
 	start_color();
-	assume_default_colors(textColorNumber, bkgdColorNumber);
-	init_pair(1, textColorNumber, bkgdColorNumber);  // 1 is the pair of colors used for text and background
+	assume_default_colors(text_color_number, bkgd_color_number);
+	init_pair(1, text_color_number, bkgd_color_number);  // 1 is the pair of colors used for text and background
 	attron(COLOR_PAIR(1));
 	bkgd(COLOR_PAIR(1));
 	refresh();
 
-	draw_interface(days, daysData, dayCount, 0, &dayDisplayCount);
+	draw_interface(days, days_data, day_count, 0, &day_display_count);
 }
 
 
@@ -33,37 +33,38 @@ int set_sigwinch_handler() {
 	return signal(SIGWINCH, sigwinch_handler) == SIG_ERR ? -1 : 0;
 }
 
-int parse_color(const char *colorName) {
-	if(!strncmp(colorName, "black", 5))
+int parse_color(const char *color_name) {
+	if(!strncmp(color_name, "black", 5))
 		return COLOR_BLACK;
-	if(!strncmp(colorName, "red", 3))
+	if(!strncmp(color_name, "red", 3))
 		return COLOR_RED;
-	if(!strncmp(colorName, "green", 5))
+	if(!strncmp(color_name, "green", 5))
 		return COLOR_GREEN;
-	if(!strncmp(colorName, "yellow", 6))
+	if(!strncmp(color_name, "yellow", 6))
 		return COLOR_YELLOW;
-	if(!strncmp(colorName, "blue", 4))
+	if(!strncmp(color_name, "blue", 4))
 		return COLOR_BLUE;
-	if(!strncmp(colorName, "magenta", 7))
+	if(!strncmp(color_name, "magenta", 7))
 		return COLOR_MAGENTA;
-	if(!strncmp(colorName, "cyan", 4))
+	if(!strncmp(color_name, "cyan", 4))
 		return COLOR_CYAN;
-	if(!strncmp(colorName, "white", 5))
+	if(!strncmp(color_name, "white", 5))
 		return COLOR_WHITE;
 
-	fprintf(stderr, "Wrong color name \"%s\" ", colorName);
+	fprintf(stderr, "Wrong color name \"%s\" ", color_name);
 	exit(-1);
 }
 
-void draw_interface(WINDOW** days, Day* daysData, int dayCount, int displayStart, int* dayDisplayCount) {
-	int i, j, currentLine;
+void draw_interface(WINDOW** days, Day* days_data, int day_count, int display_start, int* day_display_count) {
+	int i, j, current_line;
 	char *temp;
-	struct tm *timeStruct;
+	struct tm *time_struct;
 
-	*dayDisplayCount = COLS/DAY_WIDTH;
-	if (*dayDisplayCount > 28) *dayDisplayCount = 28;
+	*day_display_count = COLS/DAY_WIDTH;
+	if (*day_display_count > 28)
+		*day_display_count = 28;
 
-	for (i = 0; i < *dayDisplayCount; i++) {
+	for (i = 0; i < *day_display_count; i++) {
 		days[i] = newwin(LINES-1, DAY_WIDTH, 0, i*DAY_WIDTH);
 		wbkgd(days[i], COLOR_PAIR(1));
 		box(days[i], 0, 0);
@@ -71,33 +72,33 @@ void draw_interface(WINDOW** days, Day* daysData, int dayCount, int displayStart
 
 		// The part which shows day of the week and date
 		temp = malloc(DAY_WIDTH-2);
-		currentLine = 1;
-		timeStruct = localtime(&(daysData[i+displayStart].day));
-		strftime(temp, DAY_WIDTH-2, "%A", timeStruct);
-		nc_print_centered(days[i], DAY_WIDTH, currentLine, temp);
-		mvwchgat(days[i], currentLine++, 1, DAY_WIDTH-2, A_BOLD, 0, NULL);
-		strftime(temp, DAY_WIDTH-2, "%d %b %Y", timeStruct);
-		nc_print_centered(days[i], DAY_WIDTH, currentLine++, temp);
-		mvwhline(days[i], currentLine, 0, ACS_LTEE, 1);
-		mvwhline(days[i], currentLine, 1, ACS_HLINE, DAY_WIDTH-2);
-		mvwhline(days[i], currentLine, DAY_WIDTH-1, ACS_RTEE, 1);
-		currentLine++;
+		current_line = 1;
+		time_struct = localtime(&(days_data[i+display_start].day));
+		strftime(temp, DAY_WIDTH-2, "%A", time_struct);
+		nc_print_centered(days[i], DAY_WIDTH, current_line, temp);
+		mvwchgat(days[i], current_line++, 1, DAY_WIDTH-2, A_BOLD, 0, NULL);
+		strftime(temp, DAY_WIDTH-2, "%d %b %Y", time_struct);
+		nc_print_centered(days[i], DAY_WIDTH, current_line++, temp);
+		mvwhline(days[i], current_line, 0, ACS_LTEE, 1);
+		mvwhline(days[i], current_line, 1, ACS_HLINE, DAY_WIDTH-2);
+		mvwhline(days[i], current_line, DAY_WIDTH-1, ACS_RTEE, 1);
+		current_line++;
 		free(temp);
 
 		// Events for the day
 		temp = "Events:";
-		mvwprintw(days[i], currentLine, 1, temp, COLOR_PAIR(1));
-		mvwchgat(days[i], currentLine++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
-		for (j = 0; j < daysData[i+displayStart].eventCount; j++)
-			print_event(days[i], daysData[i+displayStart].events[j], &currentLine);
+		mvwprintw(days[i], current_line, 1, temp, COLOR_PAIR(1));
+		mvwchgat(days[i], current_line++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
+		for (j = 0; j < days_data[i+display_start].event_count; j++)
+			print_event(days[i], days_data[i+display_start].events[j], &current_line);
 
 		// Things due for the day
-		currentLine = (LINES-7)/2+4;
+		current_line = (LINES-7)/2+4;
 		temp = "Due:";
-		mvwprintw(days[i], currentLine, 1, temp, COLOR_PAIR(1));
-		mvwchgat(days[i], currentLine++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
-		for (j = 0; j < daysData[i+displayStart].dueCount; j++)
-			print_event(days[i], daysData[i+displayStart].dues[j], &currentLine);
+		mvwprintw(days[i], current_line, 1, temp, COLOR_PAIR(1));
+		mvwchgat(days[i], current_line++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
+		for (j = 0; j < days_data[i+display_start].due_count; j++)
+			print_event(days[i], days_data[i+display_start].dues[j], &current_line);
 
 		wrefresh(days[i]);
 		refresh();
@@ -113,21 +114,21 @@ void draw_interface(WINDOW** days, Day* daysData, int dayCount, int displayStart
 	}
 }
 
-void print_event(WINDOW* day, char* eventData, int* currentLine) {
+void print_event(WINDOW* day, char* event_data, int* current_line) {
 	int i, j, k;
 	char temp[16][256];
 
 	wattron(day, COLOR_PAIR(1));
 	for (i = 0; i < 16; temp[i++][0] = '\0');
-	for (i = 0, j = 0, k = 0; eventData[i] != '\0'; i++) {
-		if (eventData[i] == ';') {
+	for (i = 0, j = 0, k = 0; event_data[i] != '\0'; i++) {
+		if (event_data[i] == ';') {
 			temp[j++][k] = '\0';
 			k = 0;
 		} else {
-			temp[j][k++] = eventData[i];
+			temp[j][k++] = event_data[i];
 		}
 	}
 	temp[j][k] = '\0';
 	for (i = 0; temp[i][0] != '\0'; i++)
-		mvwprintw(day, (*currentLine)++, 1, temp[i], COLOR_PAIR(1));
+		mvwprintw(day, (*current_line)++, 1, temp[i], COLOR_PAIR(1));
 }

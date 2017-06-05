@@ -21,46 +21,46 @@
 
 #define GET_DAY_INDEX(b, d)             (d-b)/86400  // 86400 is the amount of seconds in a day
 #define GET_LAST_EVENT(arr, ind, t, tc) arr[ind].t[arr[ind].tc]
-#define ADD_EVENT(en, ecn)              GET_LAST_EVENT((*daysData), temp, en, ecn) = malloc(strlen(line+EVENT_START_POS)); \
+#define ADD_EVENT(en, ecn)              GET_LAST_EVENT((*days_data), temp, en, ecn) = malloc(strlen(line+EVENT_START_POS)); \
                                         for (j = EVENT_START_POS, k = 0; \
                                              line[j] != '\0'; \
-                                             GET_LAST_EVENT((*daysData), temp, en, ecn)[k++] = line[j++]); \
-                                        GET_LAST_EVENT((*daysData), temp, en, ecn)[k] = '\0'; \
-                                        (*daysData)[temp].ecn++
+                                             GET_LAST_EVENT((*days_data), temp, en, ecn)[k++] = line[j++]); \
+                                        GET_LAST_EVENT((*days_data), temp, en, ecn)[k] = '\0'; \
+                                        (*days_data)[temp].ecn++
 
 #define nc_print_centered(w, ww, l, s) mvwprintw(w, l, (ww-strlen(s))/2, s, COLOR_PAIR(1))
 
 
 extern WINDOW** days;
-extern Day* daysData;
-extern int dayDisplayCount;
-extern int dayCount;
-extern int displayStart;
-extern int currentFirstDay;
-extern char *dataFile;
-extern char *bkgdColor;
-extern char *txtColor;
-extern int textColorNumber;
-extern int bkgdColorNumber;
+extern Day* days_data;
+extern int day_display_count;
+extern int day_count;
+extern int display_start;
+extern int current_first_day;
+extern char *data_file;
+extern char *bkgd_color;
+extern char *txt_color;
+extern int text_color_number;
+extern int bkgd_color_number;
 
 
 int  set_sigwinch_handler();
-int  parse_color(const char *colorName);
-int  read_data(WINDOW*** days, Day** dayData, int* dayCount, const char *dataFile);
-void draw_interface(WINDOW** days, Day* dayData, int dayCount, int displayStart, int* dayDisplayCount);
-void print_event(WINDOW* day, char* eventData, int* currentLine);
+int  parse_color(const char *color_name);
+int  read_data(WINDOW*** days, Day** day_data, int* day_count, const char *data_file);
+void draw_interface(WINDOW** days, Day* day_data, int day_count, int display_start, int* day_display_count);
+void print_event(WINDOW* day, char* event_data, int* current_line);
 
 
 static inline void release_memory() {
 	int i, j;
-	for (i = 0; i < dayCount; i++) {
-		for (j = 0; j < daysData[i].eventCount; j++)
-			free(daysData[i].events[j]);
-				for (j = 0; j < daysData[i].dueCount; j++)
-					free(daysData[i].dues[j]);
+	for (i = 0; i < day_count; i++) {
+		for (j = 0; j < days_data[i].event_count; j++)
+			free(days_data[i].events[j]);
+				for (j = 0; j < days_data[i].due_count; j++)
+					free(days_data[i].dues[j]);
 	}
 	free(days);
-	free(daysData);
+	free(days_data);
 }
 
 #endif /*TODO_H*/

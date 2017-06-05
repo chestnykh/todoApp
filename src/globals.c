@@ -4,13 +4,13 @@
 
 
 WINDOW** days = NULL;
-Day* daysData = NULL;
-int dayDisplayCount;
-int dayCount = 0;
-int displayStart = 0;
-int currentFirstDay = 0;
-char *dataFile = NULL;
-char *bkgdColor = NULL;
-char *txtColor = NULL;
-int textColorNumber = COLOR_WHITE;
-int bkgdColorNumber = COLOR_BLUE;
+Day* days_data = NULL;
+int day_display_count;
+int day_count = 0;
+int display_start = 0;
+int current_first_day = 0;
+char *data_file = NULL;
+char *bkgd_color = NULL;
+char *txt_color = NULL;
+int text_color_number = COLOR_WHITE;
+int bkgd_color_number = COLOR_BLUE;

@@ -5,28 +5,28 @@
 #include "todo.h"
 
 int main(int argc, char** argv) {
-	int i, j, in, result, optIndex, ret = 0;
+	int i, j, in, result, opt_index, ret = 0;
 	size_t len;
 
-	const struct option longOpts [] = {
+	const struct option long_opts [] = {
 		{"background_color", REQUIRED_ARG, NULL, 'b'},
 		{"text_color", REQUIRED_ARG, NULL, 't'},
 		{"data_file",  REQUIRED_ARG, NULL, 'd'}
 	};
 
-	while((result = getopt_long(argc, argv, "b:t:d:", longOpts, &optIndex)) != -1) {
+	while((result = getopt_long(argc, argv, "b:t:d:", long_opts, &opt_index)) != -1) {
 		if (optarg) {
 			switch (result) {
 				case 'b':
-					bkgdColorNumber = parse_color(optarg);
+					bkgd_color_number = parse_color(optarg);
 					break;
 				case 't':
-					textColorNumber = parse_color(optarg);
+					text_color_number = parse_color(optarg);
 					break;
 				case 'd':
 					len = strlen(optarg);
-					dataFile = malloc(len);
-					memcpy(dataFile, optarg, len);
+					data_file = malloc(len);
+					memcpy(data_file, optarg, len);
 					break;
 			}
 		}
@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 	if (set_sigwinch_handler() == -1)
 		fprintf(stderr, "WARNING: Failed to set SIGEINCH handler!\n");
 
-	if ((ret = read_data(&days, &daysData, &dayCount, dataFile)) != 0) {
+	if ((ret = read_data(&days, &days_data, &day_count, data_file)) != 0) {
 		printf("Error reading file data: %d\n", ret);
 		return ret;
 	}
@@ -48,48 +48,48 @@ int main(int argc, char** argv) {
 	keypad(stdscr, TRUE);
 	// ncurses color init routines
 	start_color();
-	assume_default_colors(textColorNumber, bkgdColorNumber);
-	init_pair(1, textColorNumber, bkgdColorNumber);  // 1 is the pair of colors used for text and background
+	assume_default_colors(text_color_number, bkgd_color_number);
+	init_pair(1, text_color_number, bkgd_color_number);  // 1 is the pair of colors used for text and background
 	attron(COLOR_PAIR(1));
 	bkgd(COLOR_PAIR(1));
 	refresh();
 
 	// Generate windows for all of the rendered days
-	draw_interface(days, daysData, dayCount, 0, &dayDisplayCount);
+	draw_interface(days, days_data, day_count, 0, &day_display_count);
 
-	int toExit;
+	int to_exit;
 	while(1){
-		toExit = 0;
+		to_exit = 0;
 		in = getch();
 		if (keyname(in)[0] == '^') {
 			switch (keyname(in)[1]) {
 				case 'Q':
 				case 'C':
 				case 'X':
-					toExit = 1;
+					to_exit = 1;
 					break;
 				case 'R':
-					if ((ret = read_data(&days, &daysData, &dayCount, dataFile)) != 0) {
-						toExit = 1;
+					if ((ret = read_data(&days, &days_data, &day_count, data_file)) != 0) {
+						to_exit = 1;
 						ret = -1;
 						printf("Error reading file data\n");
 						break;
 				}
 					break;
 				case 'S':
-					if (currentFirstDay > 0)
-						currentFirstDay--;
+					if (current_first_day > 0)
+						current_first_day--;
 					break;
 				case 'D':
-					if (currentFirstDay+dayDisplayCount < dayCount)
-						currentFirstDay++;
+					if (current_first_day+day_display_count < day_count)
+						current_first_day++;
 					break;
 
 			}
-			draw_interface(days, daysData, dayCount, currentFirstDay, &dayDisplayCount);
+			draw_interface(days, days_data, day_count, current_first_day, &day_display_count);
 			mvprintw(LINES-1, COLS-1, "", COLOR_PAIR(1));  // Just here to put the cursor in the lower right
 		}
-		if(toExit == 1)
+		if(to_exit == 1)
 			break;
 	}
 	release_memory();
@@ -98,60 +98,60 @@ int main(int argc, char** argv) {
 	return ret;
 }
 
-int read_data(WINDOW*** days, Day** daysData, int* dayCount, const char *dataFile) {
+int read_data(WINDOW*** days, Day** days_data, int* day_count, const char *data_file) {
 	char type, line[MAX_LINE_LEN];
 	int i, j, k, temp;
-	time_t maxDay, minDay, tempTime;
+	time_t max_day, min_day, temp_time;
 	FILE* data;
-	struct tm timeStruct;
+	struct tm time_struct;
 
-	if (!(data = fopen(dataFile ? dataFile : "data.txt", "r")))
+	if (!(data = fopen(data_file ? data_file : "data.txt", "r")))
 		return -1;
 
-	minDay = 31536000000;  // 1000 years after 01-01-1970
-	maxDay = 0;
-	timeStruct.tm_sec   = 0;
-	timeStruct.tm_min   = 0;
-	timeStruct.tm_hour  = 0;
-	timeStruct.tm_mday  = 1;
-	timeStruct.tm_year  = 1900;
-	timeStruct.tm_wday  = 0;
-	timeStruct.tm_yday  = 0;
-	timeStruct.tm_isdst = 0;
+	min_day = 31536000000;  // 1000 years after 01-01-1970
+	max_day = 0;
+	time_struct.tm_sec   = 0;
+	time_struct.tm_min   = 0;
+	time_struct.tm_hour  = 0;
+	time_struct.tm_mday  = 1;
+	time_struct.tm_year  = 1900;
+	time_struct.tm_wday  = 0;
+	time_struct.tm_yday  = 0;
+	time_struct.tm_isdst = 0;
 
 	while (fgets(line, MAX_LINE_LEN, data) != NULL) {
-		if (strptime(line+2, "%Y-%m-%d", &timeStruct) == NULL)
+		if (strptime(line+2, "%Y-%m-%d", &time_struct) == NULL)
 			return 2;
 
-		tempTime = mktime(&timeStruct);
-		if (tempTime < minDay)
-			minDay = tempTime;
-		if (tempTime > maxDay)
-			maxDay = tempTime;
+		temp_time = mktime(&time_struct);
+		if (temp_time < min_day)
+			min_day = temp_time;
+		if (temp_time > max_day)
+			max_day = temp_time;
 	}
 	rewind(data);
-	*dayCount = GET_DAY_INDEX(minDay, maxDay)+1;
-	if (*dayCount < 1) return 3;
+	*day_count = GET_DAY_INDEX(min_day, max_day)+1;
+	if (*day_count < 1) return 3;
 
-	*daysData = malloc(*dayCount*sizeof(Day));
-	*days     = malloc(((*dayCount < 28) ? *dayCount : 28)*sizeof(WINDOW*));
-	for (i = 0; i < *dayCount; i++) {
-		(*daysData)[i].day        = minDay + i*86400;  // 86400 is the amount of seconds in a day
-		(*daysData)[i].eventCount = 0;
-		(*daysData)[i].dueCount   = 0;
+	*days_data = malloc(*day_count*sizeof(Day));
+	*days     = malloc(((*day_count < 28) ? *day_count : 28)*sizeof(WINDOW*));
+	for (i = 0; i < *day_count; i++) {
+		(*days_data)[i].day        = min_day + i*86400;  // 86400 is the amount of seconds in a day
+		(*days_data)[i].event_count = 0;
+		(*days_data)[i].due_count   = 0;
 	}
 
 	while (fgets(line, MAX_LINE_LEN, data) != NULL) {
 		line[strlen(line)-1] = '\0';
-		if (strptime(line+2, "%Y-%m-%d", &timeStruct) == NULL)
+		if (strptime(line+2, "%Y-%m-%d", &time_struct) == NULL)
 			return 4;
 
-		tempTime = mktime(&timeStruct);
-		temp = GET_DAY_INDEX(minDay, tempTime);
+		temp_time = mktime(&time_struct);
+		temp = GET_DAY_INDEX(min_day, temp_time);
 		if (line[0] == 'E') {
-			ADD_EVENT(events, eventCount);
+			ADD_EVENT(events, event_count);
 		} else {
-			ADD_EVENT(dues, dueCount);
+			ADD_EVENT(dues, due_count);
 		}
 	}
 	fclose(data);

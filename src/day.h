@@ -5,8 +5,8 @@
 
 typedef struct {
   time_t day;
-  int    eventCount;
-  int    dueCount;
+  int    event_count;
+  int    due_count;
   char*  events[MAX_EVENTS];
   char*  dues[MAX_EVENTS];
 } Day;

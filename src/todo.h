@@ -1,18 +1,18 @@
 #ifndef TODO_H
 #define TODO_H
 
-
 /* Main header file for the todoApp
  * A very basic terminal calendar/todo program
  * License: GPLv2
- *
- * Initial version by Wesley Van Pelt in May 2017
  */
-
+#include <getopt.h>
 #include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include <time.h>
+
+#define REQUIRED_ARG 1
 
 #define DAY_WIDTH       18
 #define MAX_EVENTS      128
@@ -28,8 +28,7 @@
                                         GET_LAST_EVENT((*daysData), temp, en, ecn)[k] = '\0'; \
                                         (*daysData)[temp].ecn++
 
-#define ncPrint_centered(w, ww, l, s) mvwprintw(w, l, (ww-strlen(s))/2, s)
-#define ncPrint_centered_with_color(w, ww, l, s) mvwprintw(w, l, (ww-strlen(s))/2, s, COLOR_PAIR(1))
+#define ncPrint_centered(w, ww, l, s) mvwprintw(w, l, (ww-strlen(s))/2, s, COLOR_PAIR(1))
 
 typedef struct {
   time_t day;
@@ -52,13 +51,14 @@ static int textColorNumber = COLOR_WHITE;
 static int bkgdColorNumber = COLOR_BLUE;
 
 
+int  setSigwinchHandler();
+int  parseColor(const char *colorName);
 int  readData(WINDOW*** days, Day** dayData, int* dayCount, const char *dataFile);
-void drawDays(WINDOW** days, Day* dayData, int dayCount, int displayStart, int* dayDisplayCount);
+void drawInterface(WINDOW** days, Day* dayData, int dayCount, int displayStart, int* dayDisplayCount);
 void printEvent(WINDOW* day, char* eventData, int* currentLine);
 
 
-
-static inline void releaseMemory(){
+static inline void releaseMemory() {
 	int i, j;
 	for (i = 0; i < dayCount; i++) {
 		for (j = 0; j < daysData[i].eventCount; j++)

@@ -1,29 +1,10 @@
-CC = gcc
-CCFLAGS = -O2 -Wall -march=native -D_XOPEN_SOURCE -D_GNU_SOURCE -Wno-unused-variable
+SRC = src/
 
-LDFLAGS = $(shell pkg-config --libs ncurses)
+.PHONY: clean all
+#in this top dir i think it should be saved only main targets: clean and all
 
-APP = todoApp
-
-
-OBJECTS = color.o resize_term.o todo.o
-.PHONY: clean run app
-
-run: $(APP)
-	./$(APP)
-
-$(APP): $(OBJECTS)
-	$(CC) $^ $(LDFLAGS) -o $(APP)
-
-
-.c.o:
-	$(CC) $(CCFLAGS) -c $<
-
-#dependencies
-todo.o: todo.c todo.h color.h
-color.o: color.c todo.h
-resize_term.o: resize_term.c color.h todo.h
-
+all:
+	make -C $(SRC) app
 
 clean:
-	rm -rf $(OBJECTS) $(APP)
+	make -C $(SRC) clean

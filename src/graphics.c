@@ -1,12 +1,14 @@
 #include "todo.h"
+#include <assert.h>
 
-void sigwinchHandler(int signum) {
+
+void sigwinch_handler(int signum) {
 	// FIXME: This whole method down to drawInterface() shouldn't be here
 
-	releaseMemory();
+	release_memory();
 	endwin();
 
-	if (readData(&days, &daysData, &dayCount, dataFile) != 0)
+	if (read_data(&days, &daysData, &dayCount, dataFile) != 0)
 		fprintf(stderr, "Error reading file data!\n");
 
 	initscr();
@@ -23,15 +25,15 @@ void sigwinchHandler(int signum) {
 	bkgd(COLOR_PAIR(1));
 	refresh();
 
-	drawInterface(days, daysData, dayCount, 0, &dayDisplayCount);
+	draw_interface(days, daysData, dayCount, 0, &dayDisplayCount);
 }
 
 
-int setSigwinchHandler() {
-	return signal(SIGWINCH, sigwinchHandler) == SIG_ERR ? -1 : 0;
+int set_sigwinch_handler() {
+	return signal(SIGWINCH, sigwinch_handler) == SIG_ERR ? -1 : 0;
 }
 
-int parseColor(const char *colorName) {
+int parse_color(const char *colorName) {
 	if(!strncmp(colorName, "black", 5))
 		return COLOR_BLACK;
 	if(!strncmp(colorName, "red", 3))
@@ -53,7 +55,7 @@ int parseColor(const char *colorName) {
 	exit(-1);
 }
 
-void drawInterface(WINDOW** days, Day* daysData, int dayCount, int displayStart, int* dayDisplayCount) {
+void draw_interface(WINDOW** days, Day* daysData, int dayCount, int displayStart, int* dayDisplayCount) {
 	int i, j, currentLine;
 	char *temp;
 	struct tm *timeStruct;
@@ -72,10 +74,10 @@ void drawInterface(WINDOW** days, Day* daysData, int dayCount, int displayStart,
 		currentLine = 1;
 		timeStruct = localtime(&(daysData[i+displayStart].day));
 		strftime(temp, DAY_WIDTH-2, "%A", timeStruct);
-		ncPrint_centered(days[i], DAY_WIDTH, currentLine, temp);
+		nc_print_centered(days[i], DAY_WIDTH, currentLine, temp);
 		mvwchgat(days[i], currentLine++, 1, DAY_WIDTH-2, A_BOLD, 0, NULL);
 		strftime(temp, DAY_WIDTH-2, "%d %b %Y", timeStruct);
-		ncPrint_centered(days[i], DAY_WIDTH, currentLine++, temp);
+		nc_print_centered(days[i], DAY_WIDTH, currentLine++, temp);
 		mvwhline(days[i], currentLine, 0, ACS_LTEE, 1);
 		mvwhline(days[i], currentLine, 1, ACS_HLINE, DAY_WIDTH-2);
 		mvwhline(days[i], currentLine, DAY_WIDTH-1, ACS_RTEE, 1);
@@ -87,7 +89,7 @@ void drawInterface(WINDOW** days, Day* daysData, int dayCount, int displayStart,
 		mvwprintw(days[i], currentLine, 1, temp, COLOR_PAIR(1));
 		mvwchgat(days[i], currentLine++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
 		for (j = 0; j < daysData[i+displayStart].eventCount; j++)
-			printEvent(days[i], daysData[i+displayStart].events[j], &currentLine);
+			print_event(days[i], daysData[i+displayStart].events[j], &currentLine);
 
 		// Things due for the day
 		currentLine = (LINES-7)/2+4;
@@ -95,7 +97,7 @@ void drawInterface(WINDOW** days, Day* daysData, int dayCount, int displayStart,
 		mvwprintw(days[i], currentLine, 1, temp, COLOR_PAIR(1));
 		mvwchgat(days[i], currentLine++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
 		for (j = 0; j < daysData[i+displayStart].dueCount; j++)
-			printEvent(days[i], daysData[i+displayStart].dues[j], &currentLine);
+			print_event(days[i], daysData[i+displayStart].dues[j], &currentLine);
 
 		wrefresh(days[i]);
 		refresh();
@@ -111,7 +113,7 @@ void drawInterface(WINDOW** days, Day* daysData, int dayCount, int displayStart,
 	}
 }
 
-void printEvent(WINDOW* day, char* eventData, int* currentLine) {
+void print_event(WINDOW* day, char* eventData, int* currentLine) {
 	int i, j, k;
 	char temp[16][256];
 

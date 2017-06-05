@@ -18,10 +18,10 @@ int main(int argc, char** argv) {
 		if (optarg) {
 			switch (result) {
 				case 'b':
-					bkgdColorNumber = parseColor(optarg);
+					bkgdColorNumber = parse_color(optarg);
 					break;
 				case 't':
-					textColorNumber = parseColor(optarg);
+					textColorNumber = parse_color(optarg);
 					break;
 				case 'd':
 					len = strlen(optarg);
@@ -33,10 +33,10 @@ int main(int argc, char** argv) {
 	}
 
 	//set the SIGWINCH signal handler
-	if (setSigwinchHandler() == -1)
+	if (set_sigwinch_handler() == -1)
 		fprintf(stderr, "WARNING: Failed to set SIGEINCH handler!\n");
 
-	if ((ret = readData(&days, &daysData, &dayCount, dataFile)) != 0) {
+	if ((ret = read_data(&days, &daysData, &dayCount, dataFile)) != 0) {
 		printf("Error reading file data: %d\n", ret);
 		return ret;
 	}
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
 	refresh();
 
 	// Generate windows for all of the rendered days
-	drawInterface(days, daysData, dayCount, 0, &dayDisplayCount);
+	draw_interface(days, daysData, dayCount, 0, &dayDisplayCount);
 
 	int toExit;
 	while(1){
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 					toExit = 1;
 					break;
 				case 'R':
-					if ((ret = readData(&days, &daysData, &dayCount, dataFile)) != 0) {
+					if ((ret = read_data(&days, &daysData, &dayCount, dataFile)) != 0) {
 						toExit = 1;
 						ret = -1;
 						printf("Error reading file data\n");
@@ -86,19 +86,19 @@ int main(int argc, char** argv) {
 					break;
 
 			}
-			drawInterface(days, daysData, dayCount, currentFirstDay, &dayDisplayCount);
+			draw_interface(days, daysData, dayCount, currentFirstDay, &dayDisplayCount);
 			mvprintw(LINES-1, COLS-1, "", COLOR_PAIR(1));  // Just here to put the cursor in the lower right
 		}
 		if(toExit == 1)
 			break;
 	}
-	releaseMemory();
+	release_memory();
 
 	endwin();
 	return ret;
 }
 
-int readData(WINDOW*** days, Day** daysData, int* dayCount, const char *dataFile) {
+int read_data(WINDOW*** days, Day** daysData, int* dayCount, const char *dataFile) {
 	char type, line[MAX_LINE_LEN];
 	int i, j, k, temp;
 	time_t maxDay, minDay, tempTime;

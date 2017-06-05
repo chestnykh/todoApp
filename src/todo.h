@@ -11,11 +11,11 @@
 #include <string.h>
 #include <signal.h>
 #include <time.h>
+#include "day.h"
 
 #define REQUIRED_ARG 1
 
 #define DAY_WIDTH       18
-#define MAX_EVENTS      128
 #define MAX_LINE_LEN    512
 #define EVENT_START_POS 15
 
@@ -28,37 +28,30 @@
                                         GET_LAST_EVENT((*daysData), temp, en, ecn)[k] = '\0'; \
                                         (*daysData)[temp].ecn++
 
-#define ncPrint_centered(w, ww, l, s) mvwprintw(w, l, (ww-strlen(s))/2, s, COLOR_PAIR(1))
-
-typedef struct {
-  time_t day;
-  int    eventCount;
-  int    dueCount;
-  char*  events[MAX_EVENTS];
-  char*  dues[MAX_EVENTS];
-} Day;
+#define nc_print_centered(w, ww, l, s) mvwprintw(w, l, (ww-strlen(s))/2, s, COLOR_PAIR(1))
 
 
-static WINDOW** days;
-static Day* daysData;
-static int dayDisplayCount;
-static int dayCount = 0;
-static int currentFirstDay = 0;
-static char *dataFile = NULL;
-static char *bkgdColor = NULL;
-static char *txtColor = NULL;
-static int textColorNumber = COLOR_WHITE;
-static int bkgdColorNumber = COLOR_BLUE;
+extern WINDOW** days;
+extern Day* daysData;
+extern int dayDisplayCount;
+extern int dayCount;
+extern int displayStart;
+extern int currentFirstDay;
+extern char *dataFile;
+extern char *bkgdColor;
+extern char *txtColor;
+extern int textColorNumber;
+extern int bkgdColorNumber;
 
 
-int  setSigwinchHandler();
-int  parseColor(const char *colorName);
-int  readData(WINDOW*** days, Day** dayData, int* dayCount, const char *dataFile);
-void drawInterface(WINDOW** days, Day* dayData, int dayCount, int displayStart, int* dayDisplayCount);
-void printEvent(WINDOW* day, char* eventData, int* currentLine);
+int  set_sigwinch_handler();
+int  parse_color(const char *colorName);
+int  read_data(WINDOW*** days, Day** dayData, int* dayCount, const char *dataFile);
+void draw_interface(WINDOW** days, Day* dayData, int dayCount, int displayStart, int* dayDisplayCount);
+void print_event(WINDOW* day, char* eventData, int* currentLine);
 
 
-static inline void releaseMemory() {
+static inline void release_memory() {
 	int i, j;
 	for (i = 0; i < dayCount; i++) {
 		for (j = 0; j < daysData[i].eventCount; j++)

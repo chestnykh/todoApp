@@ -5,14 +5,17 @@ A very basic terminal app to display a schedule/todo list.  I made this because 
 <center><img src="screenshot.png" alt="Screenshot"/></center>
 
 ## Building
-Have some C complier (I used GCC) and ncurses installed.  To install the ncurses stuff on Ubuntu just install `ncurses-dev`.  Then run `make` in the root project directory.
+Have some C complier (I used GCC) and ncurses installed.  To install the ncurses stuff on Ubuntu just install `ncurses-dev`.
+To configure sources automatically jist run ```./configure.sh``` THIS IS HIGHLY RECOMMENDED VARIANT
+If you want to configure sources manually run ```./configure --srcdir=<directory with src/ directory which (src/) contains source code> --bindir=<bindir>```
+Then run ```make all``` to build todoApp, todoApp executable will be placed to the directory passed to configure script as value of ```bindir``` argument
 
 ## Usage
 The built executable takes no arguments so just run it with `./todo <options>`.  Once it starts it will try to load `data.txt`.  This is where all of the data for the program is stored.  Since the program doesn't allow editing the file yet, you'll have to add events and stuff here manually.
 
 Supported options are:
-`-t <text color> or --text color <text color>`
-`-b <background color> or --background color <background color>`
+`-t <text color> or --text_color <text color>`
+`-b <background color> or --background_color <background color>`
 
 The program will display as many days as possible based on the width of the terminal window.  If you resize the window you might have to use `^R` to get it to redraw.  By default, each day has a width of 18, which means the usable space is 16 charecters.  To change this modify the `DAY_WIDTH` value in `todo.h`.
 
@@ -44,3 +47,8 @@ I'd like to add all the stuff below, but as of right now, this is in a usable st
 - Ability to load different calenders from within the app
 - Config file to make this configurable without having to modify the source code
 - Make terminal resizing better
+
+### Dependencies
+
+-libtool
+-autotools (autoconf, automake)

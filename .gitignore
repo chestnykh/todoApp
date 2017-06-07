@@ -1,4 +1,15 @@
 *.o
 todoApp
 src/config.log
-src/autom4te.cache
+config.log
+autom4te.cache
+config.status
+aclocal.m4
+compile
+config.sub
+config.guess
+install-sh
+ltmain.sh
+missing
+Makefile
+src/Makefile

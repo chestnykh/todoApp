@@ -1,0 +1,16 @@
+srcdir = @abs_srcdir@/src
+bindir = @bindir@
+builddir = @bindir@/build
+
+.PHONY: clean all
+#in this top dir i think it should be saved only main targets: clean and all
+
+all:
+	if [ ! -d "$(builddir)" ]; then \
+		mkdir $(builddir) ; \
+	fi ;\
+	make -C $(srcdir) app
+
+clean:
+	make -C $(srcdir) clean;
+	rm -rf compile config.* install* autom4te.cache/ aclocal.m4 missing ltmain* libtool m4/

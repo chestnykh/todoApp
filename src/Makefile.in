@@ -1,0 +1,33 @@
+CC = gcc
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@
+
+
+srcdir = @abs_srcdir@
+bindir = @bindir@
+builddir=@bindir@/build
+
+OBJECTS = $(builddir)/graphics.o \
+	  $(builddir)/globals.o \
+	  $(builddir)/todo.o
+
+APP	= $(bindir)/todoApp
+
+.PHONY: clean app
+
+
+app: $(OBJECTS)
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $(APP)
+
+
+$(builddir)/todo.o: $(srcdir)/todo.c $(srcdir)/todo.h
+	$(CC) $(CFLAGS) $< -c -o $@
+$(builddir)/graphics.o: $(srcdir)/graphics.c $(srcdir)/todo.h
+	$(CC) $(CFLAGS) $< -c -o $@
+$(builddir)/globals.o: $(srcdir)/globals.c $(srcdir)/day.h
+	$(CC) $(CFLAGS) $< -c -o $@
+
+	
+
+clean:
+	rm -rf $(OBJECTS) $(APP)

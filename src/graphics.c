@@ -3,7 +3,7 @@
 
 
 void sigwinch_handler(int signum) {
-	// FIXME: This whole method down to drawInterface() shouldn't be here
+	/*FIXME: This whole method down to drawInterface() shouldn't be here*/
 
 	release_memory();
 	endwin();
@@ -17,10 +17,10 @@ void sigwinch_handler(int signum) {
 	keypad(stdscr, TRUE);
 	refresh();
 
-	// ncurses color init routines
+	/*ncurses color init routines*/
 	start_color();
 	assume_default_colors(text_color_number, bkgd_color_number);
-	init_pair(1, text_color_number, bkgd_color_number);  // 1 is the pair of colors used for text and background
+	init_pair(1, text_color_number, bkgd_color_number);  /*1 is the pair of colors used for text and background*/
 	attron(COLOR_PAIR(1));
 	bkgd(COLOR_PAIR(1));
 	refresh();
@@ -70,7 +70,7 @@ void draw_interface(WINDOW** days, Day* days_data, int day_count, int display_st
 		box(days[i], 0, 0);
 		wattron(days[i], COLOR_PAIR(1));
 
-		// The part which shows day of the week and date
+		/*The part which shows day of the week and date*/
 		temp = malloc(DAY_WIDTH-2);
 		current_line = 1;
 		time_struct = localtime(&(days_data[i+display_start].day));
@@ -85,14 +85,14 @@ void draw_interface(WINDOW** days, Day* days_data, int day_count, int display_st
 		current_line++;
 		free(temp);
 
-		// Events for the day
+		/*Events for the day*/
 		temp = "Events:";
 		mvwprintw(days[i], current_line, 1, temp, COLOR_PAIR(1));
 		mvwchgat(days[i], current_line++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
 		for (j = 0; j < days_data[i+display_start].event_count; j++)
 			print_event(days[i], days_data[i+display_start].events[j], &current_line);
 
-		// Things due for the day
+		/*Things due for the day*/
 		current_line = (LINES-7)/2+4;
 		temp = "Due:";
 		mvwprintw(days[i], current_line, 1, temp, COLOR_PAIR(1));
@@ -103,14 +103,14 @@ void draw_interface(WINDOW** days, Day* days_data, int day_count, int display_st
 		wrefresh(days[i]);
 		refresh();
 
-		// Controls stuff
-		// TODO: put this in a window and make it dynamic
+		/*Controls stuff*/
+		/*TODO: put this in a window and make it dynamic*/
 		mvprintw(LINES-1, 0, "^X Exit           ^R Reload Data    ^S Back 1 Day     ^D Forward 1 Day  ", COLOR_PAIR(1));
 		mvchgat(LINES-1,  0, 2, A_STANDOUT, 0, NULL);
 		mvchgat(LINES-1, 18, 2, A_STANDOUT, 0, NULL);
 		mvchgat(LINES-1, 36, 2, A_STANDOUT, 0, NULL);
 		mvchgat(LINES-1, 54, 2, A_STANDOUT, 0, NULL);
-		mvprintw(LINES-1, COLS-1, "", COLOR_PAIR(1));  // Just here to put the cursor in the lower right
+		mvprintw(LINES-1, COLS-1, "", COLOR_PAIR(1));  /*Just here to put the cursor in the lower right*/
 	}
 }
 

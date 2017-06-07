@@ -5,7 +5,7 @@
 #include "todo.h"
 
 int main(int argc, char** argv) {
-	int i, j, in, result, opt_index, ret = 0;
+	int in, result, opt_index, ret = 0;
 	size_t len;
 
 	const struct option long_opts [] = {
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	//set the SIGWINCH signal handler
+	/*set the SIGWINCH signal handler*/
 	if (set_sigwinch_handler() == -1)
 		fprintf(stderr, "WARNING: Failed to set SIGEINCH handler!\n");
 
@@ -41,20 +41,20 @@ int main(int argc, char** argv) {
 		return ret;
 	}
 
-	// Start all the ncurses stuff
+	/*Start all the ncurses stuff*/
 	initscr();
 	raw();
 	noecho();
 	keypad(stdscr, TRUE);
-	// ncurses color init routines
+	/*ncurses color init routines*/
 	start_color();
 	assume_default_colors(text_color_number, bkgd_color_number);
-	init_pair(1, text_color_number, bkgd_color_number);  // 1 is the pair of colors used for text and background
+	init_pair(1, text_color_number, bkgd_color_number);  /*1 is the pair of colors used for text and background*/
 	attron(COLOR_PAIR(1));
 	bkgd(COLOR_PAIR(1));
 	refresh();
 
-	// Generate windows for all of the rendered days
+	/*Generate windows for all of the rendered days*/
 	draw_interface(days, days_data, day_count, 0, &day_display_count);
 
 	int to_exit;
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
 
 			}
 			draw_interface(days, days_data, day_count, current_first_day, &day_display_count);
-			mvprintw(LINES-1, COLS-1, "", COLOR_PAIR(1));  // Just here to put the cursor in the lower right
+			mvprintw(LINES-1, COLS-1, "", COLOR_PAIR(1));  /*Just here to put the cursor in the lower right*/
 		}
 		if(to_exit == 1)
 			break;
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
 }
 
 int read_data(WINDOW*** days, Day** days_data, int* day_count, const char *data_file) {
-	char type, line[MAX_LINE_LEN];
+	char line[MAX_LINE_LEN];
 	int i, j, k, temp;
 	time_t max_day, min_day, temp_time;
 	FILE* data;
@@ -108,7 +108,7 @@ int read_data(WINDOW*** days, Day** days_data, int* day_count, const char *data_
 	if (!(data = fopen(data_file ? data_file : "data.txt", "r")))
 		return -1;
 
-	min_day = 31536000000;  // 1000 years after 01-01-1970
+	min_day = 31536000000;  /*1000 years after 01-01-1970*/
 	max_day = 0;
 	time_struct.tm_sec   = 0;
 	time_struct.tm_min   = 0;
@@ -136,7 +136,7 @@ int read_data(WINDOW*** days, Day** days_data, int* day_count, const char *data_
 	*days_data = malloc(*day_count*sizeof(Day));
 	*days     = malloc(((*day_count < 28) ? *day_count : 28)*sizeof(WINDOW*));
 	for (i = 0; i < *day_count; i++) {
-		(*days_data)[i].day        = min_day + i*86400;  // 86400 is the amount of seconds in a day
+		(*days_data)[i].day        = min_day + i*86400;  /*86400 is the amount of seconds in a day*/
 		(*days_data)[i].event_count = 0;
 		(*days_data)[i].due_count   = 0;
 	}
@@ -157,4 +157,16 @@ int read_data(WINDOW*** days, Day** days_data, int* day_count, const char *data_
 	fclose(data);
 
 	return 0;
+}
+
+void release_memory() {
+	int i, j;
+	for (i = 0; i < day_count; i++) {
+		for (j = 0; j < days_data[i].event_count; j++)
+			free(days_data[i].events[j]);
+				for (j = 0; j < days_data[i].due_count; j++)
+					free(days_data[i].dues[j]);
+	}
+	free(days);
+	free(days_data);
 }

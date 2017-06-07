@@ -1,5 +1,5 @@
 CC = gcc
-CCFLAGS = -c -O2 -Wall -march=native -D_XOPEN_SOURCE -D_GNU_SOURCE -Wno-unused-variable -ggdb3
+CCFLAGS = -c -ansi -O2 -Wall -march=native -D_XOPEN_SOURCE -D_GNU_SOURCE -Wpointer-compare
 LDFLAGS = $(shell pkg-config --libs ncurses)
 
 BIN = ../bin/

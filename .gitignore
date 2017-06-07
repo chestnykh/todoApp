@@ -1,2 +1,4 @@
 *.o
 todoApp
+src/config.log
+src/autom4te.cache

@@ -19,7 +19,7 @@
 #define MAX_LINE_LEN    512
 #define EVENT_START_POS 15
 
-#define GET_DAY_INDEX(b, d)             (d-b)/86400  // 86400 is the amount of seconds in a day
+#define GET_DAY_INDEX(b, d)             (d-b)/86400  /*86400 is the amount of seconds in a day*/
 #define GET_LAST_EVENT(arr, ind, t, tc) arr[ind].t[arr[ind].tc]
 #define ADD_EVENT(en, ecn)              GET_LAST_EVENT((*days_data), temp, en, ecn) = malloc(strlen(line+EVENT_START_POS)); \
                                         for (j = EVENT_START_POS, k = 0; \
@@ -50,17 +50,7 @@ int  read_data(WINDOW*** days, Day** day_data, int* day_count, const char *data_
 void draw_interface(WINDOW** days, Day* day_data, int day_count, int display_start, int* day_display_count);
 void print_event(WINDOW* day, char* event_data, int* current_line);
 
+void release_memory();
 
-static inline void release_memory() {
-	int i, j;
-	for (i = 0; i < day_count; i++) {
-		for (j = 0; j < days_data[i].event_count; j++)
-			free(days_data[i].events[j]);
-				for (j = 0; j < days_data[i].due_count; j++)
-					free(days_data[i].dues[j]);
-	}
-	free(days);
-	free(days_data);
-}
 
 #endif /*TODO_H*/

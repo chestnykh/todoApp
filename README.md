@@ -41,6 +41,8 @@ There is a sample `data.txt` file in the repo, I tried to make the format easy t
 1 - yellow
 2 - mageta
 3 - red
+
+###
 WARNING: There may be some problems with the colors. The background color and the text color can match in some combinations of the colors, so the text on the screen will be unreadable.
 
 

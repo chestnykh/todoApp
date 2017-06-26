@@ -3,8 +3,9 @@
  * License: GPLv2
  */
 #include "todo.h"
+#include "prio.h"
 
-int main(int argc, char** argv) {
+int main(int argc, char *argv[]) {
 	int in, result, opt_index, ret = 0;
 	size_t len;
 
@@ -50,6 +51,10 @@ int main(int argc, char** argv) {
 	start_color();
 	assume_default_colors(text_color_number, bkgd_color_number);
 	init_pair(1, text_color_number, bkgd_color_number);  /*1 is the pair of colors used for text and background*/
+	init_pair(2, COLOR_CYAN, bkgd_color_number);
+	init_pair(3, COLOR_YELLOW, bkgd_color_number);
+	init_pair(4, COLOR_MAGENTA, bkgd_color_number);
+	init_pair(5, COLOR_RED, bkgd_color_number);
 	attron(COLOR_PAIR(1));
 	bkgd(COLOR_PAIR(1));
 	refresh();
@@ -81,9 +86,10 @@ int main(int argc, char** argv) {
 						current_first_day--;
 					break;
 				case 'D':
-					if (current_first_day+day_display_count < day_count)
+					if(current_first_day+day_display_count < day_count)
 						current_first_day++;
 					break;
+
 
 			}
 			draw_interface(days, days_data, day_count, current_first_day, &day_display_count);
@@ -98,11 +104,11 @@ int main(int argc, char** argv) {
 	return ret;
 }
 
-int read_data(WINDOW*** days, Day** days_data, int* day_count, const char *data_file) {
+int read_data(WINDOW ***days, Day **days_data, int *day_count, const char *data_file) {
 	char line[MAX_LINE_LEN];
-	int i, j, k, temp;
+	int i, j, k, temp, prio;
 	time_t max_day, min_day, temp_time;
-	FILE* data;
+	FILE *data;
 	struct tm time_struct;
 
 	if (!(data = fopen(data_file ? data_file : "data.txt", "r")))
@@ -131,32 +137,46 @@ int read_data(WINDOW*** days, Day** days_data, int* day_count, const char *data_
 	}
 	rewind(data);
 	*day_count = GET_DAY_INDEX(min_day, max_day)+1;
-	if (*day_count < 1) return 3;
+	if (*day_count < 1)
+		return 3;
 
 	*days_data = malloc(*day_count*sizeof(Day));
-	*days     = malloc(((*day_count < 28) ? *day_count : 28)*sizeof(WINDOW*));
-	for (i = 0; i < *day_count; i++) {
+	*days      = malloc(((*day_count < 28) ? *day_count : 28)*sizeof(WINDOW*));
+	for(i = 0; i < *day_count; i++) {
 		(*days_data)[i].day        = min_day + i*86400;  /*86400 is the amount of seconds in a day*/
 		(*days_data)[i].event_count = 0;
 		(*days_data)[i].due_count   = 0;
+
+		/*I set all elements of priority arrays to 4,
+		  as with help of it we can detect if priorities of the specific events
+		  have been actually set
+		 */
+		for(j=0; j<MAX_EVENTS; j++)
+			(*days_data)[i].prios[j] = 4;
 	}
 
-	while (fgets(line, MAX_LINE_LEN, data) != NULL) {
+	while(fgets(line, MAX_LINE_LEN, data) != NULL) {
 		line[strlen(line)-1] = '\0';
-		if (strptime(line+2, "%Y-%m-%d", &time_struct) == NULL)
+		if(strptime(line+2, "%Y-%m-%d", &time_struct) == NULL)
 			return 4;
 
 		temp_time = mktime(&time_struct);
 		temp = GET_DAY_INDEX(min_day, temp_time);
-		if (line[0] == 'E') {
+		if(line[0] == 'E'){
 			ADD_EVENT(events, event_count);
-		} else {
+			prio = get_prio(line);
+			if(prio >= 0)
+				(*days_data)[temp].prios[(*days_data)[temp].event_count - 1] = prio;
+		} else{
 			ADD_EVENT(dues, due_count);
 		}
 	}
+
 	fclose(data);
 
 	return 0;
+
+
 }
 
 void release_memory() {

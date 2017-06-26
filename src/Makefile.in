@@ -9,6 +9,7 @@ builddir=@bindir@/build
 
 OBJECTS = $(builddir)/graphics.o \
 	  $(builddir)/globals.o \
+	  $(builddir)/prio.o \
 	  $(builddir)/todo.o
 
 APP	= $(bindir)/todoApp
@@ -20,11 +21,13 @@ app: $(OBJECTS)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $(APP)
 
 
-$(builddir)/todo.o: $(srcdir)/todo.c $(srcdir)/todo.h
+$(builddir)/todo.o: $(srcdir)/todo.c $(srcdir)/todo.h $(srcdir)/prio.h
 	$(CC) $(CFLAGS) $< -c -o $@
 $(builddir)/graphics.o: $(srcdir)/graphics.c $(srcdir)/todo.h
 	$(CC) $(CFLAGS) $< -c -o $@
 $(builddir)/globals.o: $(srcdir)/globals.c $(srcdir)/day.h
+	$(CC) $(CFLAGS) $< -c -o $@
+$(builddir)/prio.o: $(srcdir)/prio.c
 	$(CC) $(CFLAGS) $< -c -o $@
 
 	

@@ -54,7 +54,7 @@ int  set_sigwinch_handler();
 int  parse_color(const char *color_name);
 int  read_data(WINDOW ***days, Day **days_data, int *day_count, const char *data_file);
 void draw_interface(WINDOW **days, Day *days_data, int day_count, int display_start, int *day_display_count);
-void print_event(WINDOW *day, char *event_data, int *current_line, int prio);
+void print_event(WINDOW **day, char *event_data, int *current_line, int prio);
 
 void release_memory();
 

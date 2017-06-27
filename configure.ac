@@ -13,7 +13,7 @@ AM_INIT_AUTOMAKE([1.9 foreign])
 
 builddir=$(bindir)/build
 
-AC_SUBST([CFLAGS], ["-ansi -O2 -Wall -D_XOPEN_SOURCE -D_GNU_SOURCE -Wpointer-compare"])
+AC_SUBST([CFLAGS], ["-ansi -O2 -Wall -D_XOPEN_SOURCE -D_GNU_SOURCE -Wpointer-compare -Wsign-compare"])
 AC_CONFIG_FILES([Makefile src/Makefile])
 
 
@@ -24,6 +24,8 @@ AC_CHECK_HEADER([stdlib.h], [], [AC_MSG_FAILURE([stdlib.h header file not found!
 AC_CHECK_HEADER([time.h], [], [AC_MSG_FAILURE([time.h header file not found!])])
 AC_CHECK_HEADER([signal.h], [], [AC_MSG_FAILURE([signal.h header file not found!])])
 AC_CHECK_HEADER([string.h], [], [AC_MSG_FAILURE([string.h header file not found!])])
+AC_CHECK_HEADER([ctype.h], [], [AC_MSG_FAILURE([ctype.h header file not found!])])
+AC_CHECK_HEADER([assert.h], [], [AC_MSG_FAILURE([assert.h header file not found!])])
 
 AC_SEARCH_LIBS([initscr], [ncursesw], [LDFLAGS+=-lncursesw], [
 		AC_SEARCH_LIBS([initscr, [ncurses], [LDFLAGS+=-lncurses], [AC_MSG_FAILURE([ncurses library not found])]])

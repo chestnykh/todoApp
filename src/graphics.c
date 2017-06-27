@@ -4,6 +4,7 @@
 
 void sigwinch_handler(int signum) {
 	/*FIXME: This whole method down to drawInterface() shouldn't be here*/
+	
 
 	release_memory();
 	endwin();
@@ -20,7 +21,16 @@ void sigwinch_handler(int signum) {
 	/*ncurses color init routines*/
 	start_color();
 	assume_default_colors(text_color_number, bkgd_color_number);
+
+
+	/*A problem is how to choose color which will be emphasize important events if we dont know
+	 what is the background color. 
+	 */
 	init_pair(1, text_color_number, bkgd_color_number);  /*1 is the pair of colors used for text and background*/
+	init_pair(2, COLOR_CYAN, bkgd_color_number);
+	init_pair(3, COLOR_YELLOW, bkgd_color_number);
+	init_pair(4, COLOR_MAGENTA, bkgd_color_number);
+	init_pair(5, COLOR_RED, bkgd_color_number);
 	attron(COLOR_PAIR(1));
 	bkgd(COLOR_PAIR(1));
 	refresh();
@@ -55,10 +65,11 @@ int parse_color(const char *color_name) {
 	exit(-1);
 }
 
-void draw_interface(WINDOW** days, Day* days_data, int day_count, int display_start, int* day_display_count) {
+void draw_interface(WINDOW **days, Day *days_data, int day_count, int display_start, int *day_display_count) {
 	int i, j, current_line;
 	char *temp;
 	struct tm *time_struct;
+	int cp;
 
 	*day_display_count = COLS/DAY_WIDTH;
 	if (*day_display_count > 28)
@@ -66,9 +77,9 @@ void draw_interface(WINDOW** days, Day* days_data, int day_count, int display_st
 
 	for (i = 0; i < *day_display_count; i++) {
 		days[i] = newwin(LINES-1, DAY_WIDTH, 0, i*DAY_WIDTH);
-		wbkgd(days[i], COLOR_PAIR(1));
+		/*wbkgd(days[i], COLOR_PAIR(1));*/
 		box(days[i], 0, 0);
-		wattron(days[i], COLOR_PAIR(1));
+		/*wattron(days[i], COLOR_PAIR(1));*/
 
 		/*The part which shows day of the week and date*/
 		temp = malloc(DAY_WIDTH-2);
@@ -89,16 +100,26 @@ void draw_interface(WINDOW** days, Day* days_data, int day_count, int display_st
 		temp = "Events:";
 		mvwprintw(days[i], current_line, 1, temp, COLOR_PAIR(1));
 		mvwchgat(days[i], current_line++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
-		for (j = 0; j < days_data[i+display_start].event_count; j++)
-			print_event(days[i], days_data[i+display_start].events[j], &current_line);
+		for (j = 0; j < days_data[i+display_start].event_count; j++){
+			if(days_data[i+display_start].prios[j] < 4){
+				print_event(&days[i], days_data[i+display_start].events[j], &current_line, days_data[i+display_start].prios[j] + 2);
+				
+			}
+			else{
+				print_event(&days[i], days_data[i+display_start].events[j], &current_line, 1);
+			}
+		}
 
 		/*Things due for the day*/
 		current_line = (LINES-7)/2+4;
 		temp = "Due:";
 		mvwprintw(days[i], current_line, 1, temp, COLOR_PAIR(1));
 		mvwchgat(days[i], current_line++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
-		for (j = 0; j < days_data[i+display_start].due_count; j++)
-			print_event(days[i], days_data[i+display_start].dues[j], &current_line);
+
+		/*I think that dues highlighting isn't need*/
+		for (j = 0; j < days_data[i+display_start].due_count; j++){
+				print_event(&days[i], days_data[i+display_start].dues[j], &current_line,1);
+		}
 
 		wrefresh(days[i]);
 		refresh();
@@ -114,11 +135,11 @@ void draw_interface(WINDOW** days, Day* days_data, int day_count, int display_st
 	}
 }
 
-void print_event(WINDOW* day, char* event_data, int* current_line) {
+void print_event(WINDOW **day, char *event_data, int *current_line, int prio) {
 	int i, j, k;
 	char temp[16][256];
 
-	wattron(day, COLOR_PAIR(1));
+	assert(prio < 6 && prio > 0);
 	for (i = 0; i < 16; temp[i++][0] = '\0');
 	for (i = 0, j = 0, k = 0; event_data[i] != '\0'; i++) {
 		if (event_data[i] == ';') {
@@ -129,6 +150,7 @@ void print_event(WINDOW* day, char* event_data, int* current_line) {
 		}
 	}
 	temp[j][k] = '\0';
+	wattron(*day, COLOR_PAIR(prio));
 	for (i = 0; temp[i][0] != '\0'; i++)
-		mvwprintw(day, (*current_line)++, 1, temp[i], COLOR_PAIR(1));
+		mvwprintw(*day, (*current_line)++, 1, temp[i], COLOR_PAIR(prio));
 }

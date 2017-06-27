@@ -3,8 +3,8 @@
 #include "day.h"
 
 
-WINDOW** days = NULL;
-Day* days_data = NULL;
+WINDOW **days = NULL;
+Day *days_data = NULL;
 int day_display_count;
 int day_count = 0;
 int display_start = 0;

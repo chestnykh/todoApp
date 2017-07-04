@@ -1,5 +1,5 @@
 #ifndef TODO_H
-#define TODO_H
+#define TODO_H 1
 
 /* Main header file for the todoApp
  * A very basic terminal calendar/todo program
@@ -19,41 +19,40 @@
 #define MAX_LINE_LEN    512
 #define EVENT_START_POS 15
 
-#define GET_DAY_INDEX(b, d)             (d-b)/86400  /*86400 is the amount of seconds in a day*/
+/*#define GET_DAY_INDEX(b, d)             ( ((d-b)/86400) == 0 ? 1 : ((d-b)/86400) )*/
+#define GET_DAY_INDEX(b, d)              ((d-b)/86400)
 #define GET_LAST_EVENT(arr, ind, t, tc) arr[ind].t[arr[ind].tc]
-#define ADD_EVENT(en, ecn)              GET_LAST_EVENT((*days_data), temp, en, ecn) = malloc(strlen(line+EVENT_START_POS)); \
+#define ADD_EVENT(en, ecn, i)           GET_LAST_EVENT((*days_data)[i], temp, en, ecn) = malloc(strlen(line+EVENT_START_POS)); \
                                         for (j = EVENT_START_POS, k = 0; \
                                              line[j] != '\0'; \
-                                             GET_LAST_EVENT((*days_data), temp, en, ecn)[k++] = line[j++]); \
-                                        GET_LAST_EVENT((*days_data), temp, en, ecn)[k] = '\0'; \
-                                        (*days_data)[temp].ecn++
+                                             GET_LAST_EVENT((*days_data)[i], temp, en, ecn)[k++] = line[j++]); \
+                                        GET_LAST_EVENT((*days_data)[i], temp, en, ecn)[k] = '\0'; \
+                                        (*days_data)[i][temp].ecn++
 
 #define nc_print_centered(w, ww, l, s) mvwprintw(w, l, (ww-strlen(s))/2, s, COLOR_PAIR(1))
 
 
 
-/*These macro is created in order to get ncurses color pair number
- which will be used to print important events with non-default text color
- */
-#define GET_COLOR_PAIR(prio) (prio < 4 ? prio + 2 : 1)
-
-extern WINDOW **days;
-extern Day *days_data;
+extern WINDOW ***days;
+extern Day **days_data;
 extern int day_display_count;
-extern int day_count;
+extern int *day_count;
 extern int display_start;
-extern int current_first_day;
+extern int *current_first_day;
 extern char *data_file;
+extern char *calendars_file;
 extern char *bkgd_color;
 extern char *txt_color;
 extern int text_color_number;
 extern int bkgd_color_number;
+extern int nr_files;
+extern int current_calendar;
 
 
 int  set_sigwinch_handler();
 int  parse_color(const char *color_name);
-int  read_data(WINDOW ***days, Day **days_data, int *day_count, const char *data_file);
-void draw_interface(WINDOW **days, Day *days_data, int day_count, int display_start, int *day_display_count);
+int  read_data(WINDOW ****days, Day ***days_data, int **day_count, const char *data_file, int cal);
+void draw_interface(WINDOW ***days, Day **days_data, int *day_count, int display_start, int *day_display_count, int cal);
 void print_event(WINDOW **day, char *event_data, int *current_line, int prio);
 
 void release_memory();

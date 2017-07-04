@@ -21,7 +21,8 @@ int get_prio(const char *event){
 		return -1;
 
 	/*
-	E<.....>: PRIO ........
+	string pattern:
+	E<.....>PRIO: ........
 	 */
 	prio_position = find_symb_pos(event, '>') + 1;
 	if(event[prio_position] == ':'

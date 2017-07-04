@@ -4,13 +4,21 @@
 
 void sigwinch_handler(int signum) {
 	/*FIXME: This whole method down to drawInterface() shouldn't be here*/
-	
+	int i;
 
 	release_memory();
 	endwin();
 
-	if (read_data(&days, &days_data, &day_count, data_file) != 0)
-		fprintf(stderr, "Error reading file data!\n");
+	if(nr_files == 1){
+		if (read_data(&days, &days_data, &day_count, data_file, 0) != 0)
+			fprintf(stderr, "Error reading file data!\n");
+	}
+	else{
+		for(i=0; i<nr_files; i++){
+			if (read_data(&days, &days_data, &day_count, data_file, i) != 0)
+				fprintf(stderr, "Error reading file data!\n");
+		}
+	}
 
 	initscr();
 	raw();
@@ -35,7 +43,7 @@ void sigwinch_handler(int signum) {
 	bkgd(COLOR_PAIR(1));
 	refresh();
 
-	draw_interface(days, days_data, day_count, 0, &day_display_count);
+	draw_interface(days, days_data, day_count, 0, &day_display_count, current_calendar);
 }
 
 
@@ -65,72 +73,77 @@ int parse_color(const char *color_name) {
 	exit(-1);
 }
 
-void draw_interface(WINDOW **days, Day *days_data, int day_count, int display_start, int *day_display_count) {
+void draw_interface(WINDOW ***days, Day **days_data, int *day_count, int display_start, int *day_display_count, int cal) {
 	int i, j, current_line;
 	char *temp;
 	struct tm *time_struct;
-	int cp;
 
 	*day_display_count = COLS/DAY_WIDTH;
+	/**day_display_count = day_count[cal];*/
+	if(day_count[cal] < *day_display_count)
+		*day_display_count = day_count[cal];
 	if (*day_display_count > 28)
 		*day_display_count = 28;
 
 	for (i = 0; i < *day_display_count; i++) {
-		days[i] = newwin(LINES-1, DAY_WIDTH, 0, i*DAY_WIDTH);
+		days[cal][i] = newwin(LINES-1, DAY_WIDTH, 0, i*DAY_WIDTH);
 		/*wbkgd(days[i], COLOR_PAIR(1));*/
-		box(days[i], 0, 0);
+		box(days[cal][i], 0, 0);
 		/*wattron(days[i], COLOR_PAIR(1));*/
 
 		/*The part which shows day of the week and date*/
 		temp = malloc(DAY_WIDTH-2);
 		current_line = 1;
-		time_struct = localtime(&(days_data[i+display_start].day));
+		time_struct = localtime(&(days_data[cal][i+display_start].day));
 		strftime(temp, DAY_WIDTH-2, "%A", time_struct);
-		nc_print_centered(days[i], DAY_WIDTH, current_line, temp);
-		mvwchgat(days[i], current_line++, 1, DAY_WIDTH-2, A_BOLD, 0, NULL);
+		nc_print_centered(days[cal][i], DAY_WIDTH, current_line, temp);
+		mvwchgat(days[cal][i], current_line++, 1, DAY_WIDTH-2, A_BOLD, 0, NULL);
 		strftime(temp, DAY_WIDTH-2, "%d %b %Y", time_struct);
-		nc_print_centered(days[i], DAY_WIDTH, current_line++, temp);
-		mvwhline(days[i], current_line, 0, ACS_LTEE, 1);
-		mvwhline(days[i], current_line, 1, ACS_HLINE, DAY_WIDTH-2);
-		mvwhline(days[i], current_line, DAY_WIDTH-1, ACS_RTEE, 1);
+		nc_print_centered(days[cal][i], DAY_WIDTH, current_line++, temp);
+		mvwhline(days[cal][i], current_line, 0, ACS_LTEE, 1);
+		mvwhline(days[cal][i], current_line, 1, ACS_HLINE, DAY_WIDTH-2);
+		mvwhline(days[cal][i], current_line, DAY_WIDTH-1, ACS_RTEE, 1);
 		current_line++;
 		free(temp);
 
 		/*Events for the day*/
 		temp = "Events:";
-		mvwprintw(days[i], current_line, 1, temp, COLOR_PAIR(1));
-		mvwchgat(days[i], current_line++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
-		for (j = 0; j < days_data[i+display_start].event_count; j++){
-			if(days_data[i+display_start].prios[j] < 4){
-				print_event(&days[i], days_data[i+display_start].events[j], &current_line, days_data[i+display_start].prios[j] + 2);
+		mvwprintw(days[cal][i], current_line, 1, temp, COLOR_PAIR(1));
+		mvwchgat(days[cal][i], current_line++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
+		for (j = 0; j < days_data[cal][i+display_start].event_count; j++){
+			/*assert(days_data[cal][i+display_start].events[j] != NULL);*/
+			if(days_data[cal][i+display_start].prios[j] < 4){
+				print_event(&days[cal][i], days_data[cal][i+display_start].events[j],
+					       	&current_line, days_data[cal][i+display_start].prios[j] + 2);
 				
 			}
 			else{
-				print_event(&days[i], days_data[i+display_start].events[j], &current_line, 1);
+				print_event(&days[cal][i], days_data[cal][i+display_start].events[j], &current_line, 1);
 			}
 		}
 
 		/*Things due for the day*/
 		current_line = (LINES-7)/2+4;
 		temp = "Due:";
-		mvwprintw(days[i], current_line, 1, temp, COLOR_PAIR(1));
-		mvwchgat(days[i], current_line++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
+		mvwprintw(days[cal][i], current_line, 1, temp, COLOR_PAIR(1));
+		mvwchgat(days[cal][i], current_line++, 1, DAY_WIDTH-2, A_UNDERLINE, 0, NULL);
 
 		/*I think that dues highlighting isn't need*/
-		for (j = 0; j < days_data[i+display_start].due_count; j++){
-				print_event(&days[i], days_data[i+display_start].dues[j], &current_line,1);
-		}
+		for(j = 0; j < days_data[cal][i+display_start].due_count; j++)
+				print_event(&days[cal][i], days_data[cal][i+display_start].dues[j], &current_line, 1);
 
-		wrefresh(days[i]);
+		wrefresh(days[cal][i]);
 		refresh();
 
 		/*Controls stuff*/
 		/*TODO: put this in a window and make it dynamic*/
-		mvprintw(LINES-1, 0, "^X Exit           ^R Reload Data    ^S Back 1 Day     ^D Forward 1 Day  ", COLOR_PAIR(1));
+		mvprintw(LINES-1, 0, "^X Exit           ^R Reload Data    ^S Back 1 Day     ^D Forward 1 Day  ^N and ^D Next calendar", COLOR_PAIR(1));
 		mvchgat(LINES-1,  0, 2, A_STANDOUT, 0, NULL);
 		mvchgat(LINES-1, 18, 2, A_STANDOUT, 0, NULL);
 		mvchgat(LINES-1, 36, 2, A_STANDOUT, 0, NULL);
 		mvchgat(LINES-1, 54, 2, A_STANDOUT, 0, NULL);
+		mvchgat(LINES-1, 72, 2, A_STANDOUT, 0, NULL);
+		mvchgat(LINES-1, 79, 2, A_STANDOUT, 0, NULL);
 		mvprintw(LINES-1, COLS-1, "", COLOR_PAIR(1));  /*Just here to put the cursor in the lower right*/
 	}
 }
@@ -140,8 +153,8 @@ void print_event(WINDOW **day, char *event_data, int *current_line, int prio) {
 	char temp[16][256];
 
 	assert(prio < 6 && prio > 0);
-	for (i = 0; i < 16; temp[i++][0] = '\0');
-	for (i = 0, j = 0, k = 0; event_data[i] != '\0'; i++) {
+	for(i = 0; i < 16; temp[i++][0] = '\0');
+	for(i = 0, j = 0, k = 0; event_data[i] != '\0'; i++){
 		if (event_data[i] == ';') {
 			temp[j++][k] = '\0';
 			k = 0;

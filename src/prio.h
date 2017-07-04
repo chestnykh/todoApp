@@ -1,5 +1,5 @@
 #ifndef PRIO_H
-#define PRIO_H
+#define PRIO_H 1
 
 
 /*

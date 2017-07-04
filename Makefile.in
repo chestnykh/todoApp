@@ -14,4 +14,4 @@ all:
 clean:
 	make -C $(srcdir) clean;
 	rm -rf compile config.* install* autom4te.cache/ aclocal.m4 missing ltmain* libtool m4/ \
-	Makefile src/Makefile configure
+	Makefile src/Makefile configure bin/build

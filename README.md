@@ -16,6 +16,8 @@ The built executable takes no arguments so just run it with `./todo <options>`. 
 Supported options are:
 `-t <text color> or --text_color <text color>`
 `-b <background color> or --background_color <background color>`
+`-c <```file```> or --calendars=<```file```>` The ```file``` must contain a list of files with calendars, one file on each line without empty lines.
+While using ```-c``` option in order go to next calendar press Ctrl+N and Ctrl+D. 
 
 The program will display as many days as possible based on the width of the terminal window.  If you resize the window you might have to use `^R` to get it to redraw.  By default, each day has a width of 18, which means the usable space is 16 charecters.  To change this modify the `DAY_WIDTH` value in `todo.h`.
 
